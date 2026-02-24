@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { students } from "@/lib/students";
 import { Student } from "@/types/student";
-import { v4 as uuid } from "uuid";
 
 export async function GET() {
     return NextResponse.json(students);

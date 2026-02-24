@@ -1,10 +1,17 @@
+// ADD STUDENT PAGE — Client Component (needs form state and navigation).
+// Route: /students/add
+// Renders a form with client-side validation. On submit, sends POST /api/students.
+// If the API returns an error, the message is displayed. On success, redirects to the list.
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Container from "@/components/Container";
 
 export default function AddStudentPage() {
     const router = useRouter();
+
+    // Each form field gets its own state variable
     const [name, setName] = useState("");
     const [age, setAge] = useState("");
     const [course, setCourse] = useState("");
@@ -13,9 +20,11 @@ export default function AddStudentPage() {
     const [submitting, setSubmitting] = useState(false);
 
     async function handleSubmit(e: React.FormEvent) {
+        // Prevent default form submission (which would reload the page)
         e.preventDefault();
         setError(null);
 
+        // CLIENT-SIDE VALIDATION — checks before we even hit the API
         if (!name.trim() || !age.trim() || !course.trim() || !email.trim()) {
             setError("All fields are required.");
             return;
@@ -28,6 +37,7 @@ export default function AddStudentPage() {
 
         setSubmitting(true);
         try {
+            // POST request to our API route with the form data as JSON
             const res = await fetch("/api/students", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -39,7 +49,7 @@ export default function AddStudentPage() {
                 throw new Error(payload?.message || "Failed to create student");
             }
 
-            // Navigate back to students list
+            // On success, navigate back to the students list
             router.push("/students");
         } catch (err: any) {
             setError(err?.message || "An unexpected error occurred.");
@@ -49,49 +59,43 @@ export default function AddStudentPage() {
     }
 
     return (
-        <div style={{ padding: 20, maxWidth: 600 }}>
-            <h1>Add Student</h1>
+        <Container>
+            <div className="max-w-2xl mx-auto py-8">
+                <h1 className="text-2xl font-semibold mb-4">Add Student</h1>
 
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: 12 }}>
-                    <label>
-                        Name
-                        <input value={name} onChange={(e) => setName(e.target.value)} required style={{ display: "block", width: "100%" }} />
-                    </label>
-                </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Name</label>
+                        <input className="form-input" value={name} onChange={(e) => setName(e.target.value)} required />
+                    </div>
 
-                <div style={{ marginBottom: 12 }}>
-                    <label>
-                        Age
-                        <input value={age} onChange={(e) => setAge(e.target.value)} required inputMode="numeric" style={{ display: "block", width: "100%" }} />
-                    </label>
-                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Age</label>
+                        <input className="form-input" value={age} onChange={(e) => setAge(e.target.value)} required inputMode="numeric" />
+                    </div>
 
-                <div style={{ marginBottom: 12 }}>
-                    <label>
-                        Course
-                        <input value={course} onChange={(e) => setCourse(e.target.value)} required style={{ display: "block", width: "100%" }} />
-                    </label>
-                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Course</label>
+                        <input className="form-input" value={course} onChange={(e) => setCourse(e.target.value)} required />
+                    </div>
 
-                <div style={{ marginBottom: 12 }}>
-                    <label>
-                        Email
-                        <input value={email} onChange={(e) => setEmail(e.target.value)} required type="email" style={{ display: "block", width: "100%" }} />
-                    </label>
-                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <input className="form-input" value={email} onChange={(e) => setEmail(e.target.value)} required type="email" />
+                    </div>
 
-                {error && <p style={{ color: "red" }}>{error}</p>}
+                    {error && <p className="text-sm text-red-600">{error}</p>}
 
-                <div style={{ marginTop: 16 }}>
-                    <button type="submit" disabled={submitting}>
-                        {submitting ? "Adding..." : "Add Student"}
-                    </button>
-                    <button type="button" onClick={() => router.push("/students")} style={{ marginLeft: 8 }}>
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
+                    <div className="flex items-center gap-3">
+                        <button className="btn" type="submit" disabled={submitting}>
+                            {submitting ? "Adding..." : "Add Student"}
+                        </button>
+                        <button type="button" onClick={() => router.push("/students")} className="btn btn-secondary">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </Container>
     );
 }
