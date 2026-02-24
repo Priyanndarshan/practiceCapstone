@@ -1,31 +1,34 @@
-// ADD STUDENT PAGE — Client Component (needs form state and navigation).
-// Route: /students/add
-// Renders a form with client-side validation. On submit, sends POST /api/students.
-// If the API returns an error, the message is displayed. On success, redirects to the list.
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Container from "@/components/Container";
+import Container from "@/components/layout/container";
 
 export default function AddStudentPage() {
     const router = useRouter();
 
-    // Each form field gets its own state variable
     const [name, setName] = useState("");
     const [age, setAge] = useState("");
     const [course, setCourse] = useState("");
     const [email, setEmail] = useState("");
+    const [semester, setSemester] = useState("");
+    const [enrollmentYear, setEnrollmentYear] = useState("");
+    const [feesPaid, setFeesPaid] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
     async function handleSubmit(e: React.FormEvent) {
-        // Prevent default form submission (which would reload the page)
         e.preventDefault();
         setError(null);
 
-        // CLIENT-SIDE VALIDATION — checks before we even hit the API
-        if (!name.trim() || !age.trim() || !course.trim() || !email.trim()) {
+        if (
+            !name.trim() ||
+            !age.trim() ||
+            !course.trim() ||
+            !email.trim() ||
+            !semester.trim() ||
+            !enrollmentYear.trim()
+        ) {
             setError("All fields are required.");
             return;
         }
@@ -35,13 +38,25 @@ export default function AddStudentPage() {
             return;
         }
 
+        if (isNaN(Number(semester)) || Number(semester) < 1 || Number(semester) > 10) {
+            setError("Semester must be between 1 and 10.");
+            return;
+        }
+
         setSubmitting(true);
         try {
-            // POST request to our API route with the form data as JSON
             const res = await fetch("/api/students", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: name.trim(), age: Number(age), course: course.trim(), email: email.trim() }),
+                body: JSON.stringify({
+                    name: name.trim(),
+                    age: Number(age),
+                    course: course.trim(),
+                    email: email.trim(),
+                    semester: Number(semester),
+                    enrollmentYear: Number(enrollmentYear),
+                    feesPaid,
+                }),
             });
 
             if (!res.ok) {
@@ -49,7 +64,6 @@ export default function AddStudentPage() {
                 throw new Error(payload?.message || "Failed to create student");
             }
 
-            // On success, navigate back to the students list
             router.push("/students");
         } catch (err: any) {
             setError(err?.message || "An unexpected error occurred.");
@@ -60,34 +74,53 @@ export default function AddStudentPage() {
 
     return (
         <Container>
-            <div className="max-w-2xl mx-auto py-8">
-                <h1 className="text-2xl font-semibold mb-4">Add Student</h1>
+            <div className="fade-up" style={{ maxWidth: 560, margin: "0 auto" }}>
+                <div className="page-header">
+                    <h1 className="page-title">Add Student</h1>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Name</label>
-                        <input className="form-input" value={name} onChange={(e) => setName(e.target.value)} required />
+                <form onSubmit={handleSubmit} className="card" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="name">Full Name</label>
+                        <input className="form-input" id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Aarav Sharma" />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Age</label>
-                        <input className="form-input" value={age} onChange={(e) => setAge(e.target.value)} required inputMode="numeric" />
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="age">Age</label>
+                        <input className="form-input" id="age" value={age} onChange={(e) => setAge(e.target.value)} required inputMode="numeric" placeholder="e.g. 20" />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Course</label>
-                        <input className="form-input" value={course} onChange={(e) => setCourse(e.target.value)} required />
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="course">Course</label>
+                        <input className="form-input" id="course" value={course} onChange={(e) => setCourse(e.target.value)} required placeholder="e.g. B.Tech CSE" />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
-                        <input className="form-input" value={email} onChange={(e) => setEmail(e.target.value)} required type="email" />
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="email">Email</label>
+                        <input className="form-input" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required type="email" placeholder="e.g. aarav@vit.ac.in" />
                     </div>
 
-                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                        <div className="form-group">
+                            <label className="form-label" htmlFor="semester">Semester</label>
+                            <input className="form-input" id="semester" value={semester} onChange={(e) => setSemester(e.target.value)} required inputMode="numeric" placeholder="e.g. 4" min="1" max="10" />
+                        </div>
 
-                    <div className="flex items-center gap-3">
-                        <button className="btn" type="submit" disabled={submitting}>
+                        <div className="form-group">
+                            <label className="form-label" htmlFor="enrollmentYear">Enrollment Year</label>
+                            <input className="form-input" id="enrollmentYear" value={enrollmentYear} onChange={(e) => setEnrollmentYear(e.target.value)} required inputMode="numeric" placeholder="e.g. 2024" min="2018" max="2030" />
+                        </div>
+                    </div>
+
+                    <div className="checkbox-group">
+                        <input type="checkbox" id="feesPaid" checked={feesPaid} onChange={(e) => setFeesPaid(e.target.checked)} />
+                        <label htmlFor="feesPaid">Fees Paid</label>
+                    </div>
+
+                    {error && <p className="error-text">{error}</p>}
+
+                    <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+                        <button className="btn btn-primary" type="submit" disabled={submitting}>
                             {submitting ? "Adding..." : "Add Student"}
                         </button>
                         <button type="button" onClick={() => router.push("/students")} className="btn btn-secondary">

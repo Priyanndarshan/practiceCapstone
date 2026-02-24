@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { students } from "@/lib/students";
-import { Student } from "@/types/student";
 
 /**
  * GET /api/students/:id
@@ -57,7 +56,6 @@ export async function PATCH(
         return NextResponse.json({ message: "Not found" }, { status: 404 });
     }
 
-    // Only update provided fields
     if (body.name !== undefined) {
         student.name = body.name.trim();
     }
@@ -78,6 +76,18 @@ export async function PATCH(
 
     if (body.email !== undefined) {
         student.email = body.email.trim();
+    }
+
+    if (body.semester !== undefined) {
+        student.semester = Number(body.semester);
+    }
+
+    if (body.enrollmentYear !== undefined) {
+        student.enrollmentYear = Number(body.enrollmentYear);
+    }
+
+    if (body.feesPaid !== undefined) {
+        student.feesPaid = body.feesPaid === true;
     }
 
     return NextResponse.json(student);

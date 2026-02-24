@@ -1,49 +1,43 @@
-// EDIT STUDENT PAGE — Client Component (needs form state + dynamic fetching).
-// Route: /students/:id/edit
-// On load, fetches the existing student data and pre-fills the form.
-// On submit, sends a PATCH request with only the changed fields.
-// PATCH (not PUT) is used because we do partial updates — only modified fields are sent.
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Student } from "@/types/student";
-import Container from "@/components/Container";
+import Container from "@/components/layout/container";
 
 export default function EditStudentPage() {
-  // useParams() extracts the dynamic [id] from the URL
   const { id } = useParams();
   const router = useRouter();
 
-  // Single state object for all form fields (cleaner than 4 separate useState calls)
   const [formData, setFormData] = useState({
     name: "",
     age: "",
     course: "",
     email: "",
+    semester: "",
+    enrollmentYear: "",
+    feesPaid: false,
   });
 
   const [loading, setLoading] = useState(true);
 
-  // Fetch the current student data to pre-fill the form
   async function fetchStudent() {
     try {
       const res = await fetch(`/api/students/${id}`);
-      if (!res.ok) {
-        throw new Error("Student not found");
-      }
+      if (!res.ok) throw new Error("Student not found");
 
       const data: Student = await res.json();
 
-      // Pre-fill form with existing values
       setFormData({
         name: data.name,
         age: data.age.toString(),
         course: data.course,
         email: data.email,
+        semester: data.semester.toString(),
+        enrollmentYear: data.enrollmentYear.toString(),
+        feesPaid: data.feesPaid,
       });
-
-    } catch (error) {
+    } catch {
       alert("Student not found");
       router.push("/students");
     } finally {
@@ -55,26 +49,25 @@ export default function EditStudentPage() {
     if (id) fetchStudent();
   }, [id]);
 
-  // Generic change handler — uses the input's "name" attribute to update the right field
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : value,
     });
   }
 
-  // Submit the updated data via PATCH /api/students/:id
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const res = await fetch(`/api/students/${id}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...formData,
         age: Number(formData.age),
+        semester: Number(formData.semester),
+        enrollmentYear: Number(formData.enrollmentYear),
       }),
     });
 
@@ -83,68 +76,58 @@ export default function EditStudentPage() {
       return;
     }
 
-    // On success, redirect to the student's detail page
     router.push(`/students/${id}`);
   }
 
-  if (loading) return <p className="p-6">Loading...</p>;
+  if (loading) return <div className="loading-state">Loading...</div>;
 
   return (
     <Container>
-      <div className="max-w-2xl mx-auto py-8">
-        <h1 className="text-2xl font-semibold mb-4">Edit Student</h1>
+      <div className="fade-up" style={{ maxWidth: 560, margin: "0 auto" }}>
+        <div className="page-header">
+          <h1 className="page-title">Edit Student</h1>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <input
-              className="form-input"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
+        <form onSubmit={handleSubmit} className="card" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="name">Name</label>
+            <input className="form-input" id="name" type="text" name="name" value={formData.name} onChange={handleChange} required />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Age</label>
-            <input
-              className="form-input"
-              type="number"
-              name="age"
-              value={formData.age}
-              onChange={handleChange}
-              required
-            />
+          <div className="form-group">
+            <label className="form-label" htmlFor="age">Age</label>
+            <input className="form-input" id="age" type="number" name="age" value={formData.age} onChange={handleChange} required />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Course</label>
-            <input
-              className="form-input"
-              type="text"
-              name="course"
-              value={formData.course}
-              onChange={handleChange}
-              required
-            />
+          <div className="form-group">
+            <label className="form-label" htmlFor="course">Course</label>
+            <input className="form-input" id="course" type="text" name="course" value={formData.course} onChange={handleChange} required />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              className="form-input"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
+          <div className="form-group">
+            <label className="form-label" htmlFor="email">Email</label>
+            <input className="form-input" id="email" type="email" name="email" value={formData.email} onChange={handleChange} required />
           </div>
 
-          <div className="flex gap-3">
-            <button className="btn" type="submit">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="semester">Semester</label>
+              <input className="form-input" id="semester" type="number" name="semester" value={formData.semester} onChange={handleChange} required min="1" max="10" />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="enrollmentYear">Enrollment Year</label>
+              <input className="form-input" id="enrollmentYear" type="number" name="enrollmentYear" value={formData.enrollmentYear} onChange={handleChange} required min="2018" max="2030" />
+            </div>
+          </div>
+
+          <div className="checkbox-group">
+            <input type="checkbox" id="feesPaid" name="feesPaid" checked={formData.feesPaid} onChange={handleChange} />
+            <label htmlFor="feesPaid">Fees Paid</label>
+          </div>
+
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+            <button className="btn btn-primary" type="submit">
               Update Student
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => router.push(`/students/${id}`)}>

@@ -1,17 +1,12 @@
-// STUDENT DETAILS PAGE — Client Component (needs dynamic data fetching).
-// Route: /students/:id  (the [id] folder makes this a dynamic route)
-// Fetches a single student by ID from the API and displays their details.
-// Also provides Edit, Delete, and Back actions.
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Student } from "@/types/student";
 import Link from "next/link";
-import Container from "@/components/Container";
+import Container from "@/components/layout/container";
 
 export default function StudentDetailsPage() {
-  // useParams() extracts the dynamic [id] from the URL
   const { id } = useParams();
   const router = useRouter();
 
@@ -19,63 +14,99 @@ export default function StudentDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetches GET /api/students/:id — returns 404 if not found
   async function fetchStudent() {
     try {
       const res = await fetch(`/api/students/${id}`);
-
-      if (!res.ok) {
-        throw new Error("Student not found");
-      }
-
+      if (!res.ok) throw new Error("Student not found");
       const data = await res.json();
       setStudent(data);
-    } catch (err) {
+    } catch {
       setError("Student not found");
     } finally {
       setLoading(false);
     }
   }
 
-  // Sends DELETE /api/students/:id then redirects to the list
   async function handleDelete() {
-    const confirmDelete = confirm("Are you sure?");
+    const confirmDelete = confirm("Are you sure you want to delete this student?");
     if (!confirmDelete) return;
-
-    await fetch(`/api/students/${id}`, {
-      method: "DELETE",
-    });
-
+    await fetch(`/api/students/${id}`, { method: "DELETE" });
     router.push("/students");
   }
 
-  // Fetch student data when the page loads (or when id changes)
   useEffect(() => {
     if (id) fetchStudent();
   }, [id]);
 
-  if (loading) return <p className="p-6">Loading...</p>;
-  if (error) return <p className="p-6 text-red-600">{error}</p>;
+  if (loading) return <div className="loading-state">Loading...</div>;
+  if (error)
+    return (
+      <Container>
+        <div className="empty-state">
+          <div className="empty-state-icon">😕</div>
+          <p className="empty-state-text">{error}</p>
+          <Link href="/students" className="btn btn-secondary" style={{ marginTop: "1rem", display: "inline-flex" }}>
+            ← Back to Students
+          </Link>
+        </div>
+      </Container>
+    );
 
   return (
     <Container>
-      <div className="max-w-2xl mx-auto py-8">
-        <h1 className="text-2xl font-semibold mb-4">Student Details</h1>
-
-        <div className="card space-y-2">
-          <p><strong>Name:</strong> {student?.name}</p>
-          <p><strong>Age:</strong> {student?.age}</p>
-          <p><strong>Course:</strong> {student?.course}</p>
-          <p><strong>Email:</strong> {student?.email}</p>
+      <div className="fade-up" style={{ maxWidth: 640, margin: "0 auto" }}>
+        <div className="page-header">
+          <h1 className="page-title">Student Details</h1>
         </div>
 
-        <div className="flex gap-3 mt-4">
-          <Link href={`/students/${id}/edit`} className="btn-secondary no-underline">
-            Edit
+        <div className="card">
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+            <div className="student-card-avatar" style={{ width: 56, height: 56, fontSize: "1.4rem" }}>
+              {student?.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h2 style={{ fontSize: "1.25rem", fontWeight: 700 }}>{student?.name}</h2>
+              <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary)" }}>{student?.course}</p>
+            </div>
+          </div>
+
+          <div className="detail-grid">
+            <div className="detail-item">
+              <span className="detail-label">Age</span>
+              <span className="detail-value">{student?.age} years</span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Email</span>
+              <span className="detail-value">{student?.email}</span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Semester</span>
+              <span className="detail-value">Semester {student?.semester}</span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Enrollment Year</span>
+              <span className="detail-value">{student?.enrollmentYear}</span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Fees Status</span>
+              <span className="detail-value">
+                <span className={`badge ${student?.feesPaid ? "badge-success" : "badge-warning"}`}>
+                  {student?.feesPaid ? "Paid" : "Unpaid"}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.25rem" }}>
+          <Link href={`/students/${id}/edit`} className="btn btn-primary">
+            Edit Student
           </Link>
-          <button onClick={handleDelete} className="btn danger">Delete</button>
-          <Link href="/students" className="btn-secondary no-underline">
-            Back
+          <button onClick={handleDelete} className="btn btn-danger">
+            Delete
+          </button>
+          <Link href="/students" className="btn btn-secondary">
+            ← Back
           </Link>
         </div>
       </div>

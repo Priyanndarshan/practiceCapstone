@@ -4,17 +4,15 @@ import { Student } from "@/types/student";
 
 export async function GET() {
     return NextResponse.json(students);
-
 }
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
 
-        const { name, age, course, email } = body;
+        const { name, age, course, email, semester, enrollmentYear } = body;
 
-        // Basic validation
-        if (!name || !age || !course || !email) {
+        if (!name || !age || !course || !email || !semester || !enrollmentYear) {
             return NextResponse.json(
                 { message: "All fields are required" },
                 { status: 400 }
@@ -27,6 +25,9 @@ export async function POST(req: Request) {
             age: Number(age),
             course,
             email,
+            semester: Number(semester),
+            enrollmentYear: Number(enrollmentYear),
+            feesPaid: body.feesPaid === true,
         };
 
         students.push(newStudent);
@@ -39,4 +40,3 @@ export async function POST(req: Request) {
         );
     }
 }
-

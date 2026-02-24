@@ -1,26 +1,23 @@
-// STUDENTS LIST PAGE — Client Component (needs useState, useEffect for fetching data).
-// Route: /students
-// This page fetches all students from the API on mount and displays them
-// using the reusable StudentCard component. It also handles inline deletion.
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { Student } from "@/types/student";
-import Container from "@/components/Container";
-import StudentCard from "@/components/StudentCard";
+import Container from "@/components/layout/container";
+import StudentCard from "@/components/ui/student-card";
 
 export default function StudentsPage() {
-  // Server data + UI state
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Search & filter state
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [courseFilter, setCourseFilter] = useState<string>("all");
+  const [yearFilters, setYearFilters] = useState<string[]>([]);
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
+  const yearDropdownRef = useRef<HTMLDivElement>(null);
+  const [feesFilter, setFeesFilter] = useState<string>("all");
 
-  // Fetch students from the API
   async function fetchStudents() {
     try {
       const res = await fetch("/api/students");
@@ -37,26 +34,51 @@ export default function StudentsPage() {
     fetchStudents();
   }, []);
 
-  // Debounce the search input (300ms)
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(query.trim().toLowerCase()), 300);
+    const t = setTimeout(
+      () => setDebouncedQuery(query.trim().toLowerCase()),
+      300
+    );
     return () => clearTimeout(t);
   }, [query]);
 
-  // Derived list of unique courses for the filter dropdown
+  // Handle clicking outside the custom dropdown to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target as Node)) {
+        setIsYearDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const courses = useMemo(() => {
     const setC = new Set<string>();
     students.forEach((s) => setC.add(s.course));
     return ["all", ...Array.from(setC).sort()];
   }, [students]);
 
-  // Compute filtered list using memoization
+  const years = useMemo(() => {
+    const setY = new Set<number>();
+    students.forEach((s) => setY.add(s.enrollmentYear));
+    return ["all", ...Array.from(setY).sort((a, b) => b - a).map(String)];
+  }, [students]);
+
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(6);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, courseFilter, yearFilters, feesFilter]);
+
   const filtered = useMemo(() => {
     return students.filter((s) => {
-      // course filter
       if (courseFilter !== "all" && s.course !== courseFilter) return false;
+      if (yearFilters.length > 0 && !yearFilters.includes(s.enrollmentYear.toString())) return false;
+      if (feesFilter === "paid" && !s.feesPaid) return false;
+      if (feesFilter === "unpaid" && s.feesPaid) return false;
 
-      // search across name, email, and course
       if (!debouncedQuery) return true;
       const q = debouncedQuery;
       return (
@@ -65,76 +87,201 @@ export default function StudentsPage() {
         s.course.toLowerCase().includes(q)
       );
     });
-  }, [students, courseFilter, debouncedQuery]);
+  }, [students, courseFilter, yearFilters, feesFilter, debouncedQuery]);
 
-  // Delete handler triggers server delete then refreshes
   async function handleDelete(id: string) {
-    const confirmDelete = confirm("Are you sure you want to delete?");
+    const confirmDelete = confirm("Are you sure you want to delete this student?");
     if (!confirmDelete) return;
 
-    await fetch(`/api/students/${id}`, {
-      method: "DELETE",
-    });
-
-    // Re-fetch to keep client in sync with server
+    await fetch(`/api/students/${id}`, { method: "DELETE" });
     fetchStudents();
   }
 
-  if (loading) return <p className="p-6">Loading...</p>;
+  if (loading) {
+    return <div className="loading-state">Loading students...</div>;
+  }
 
   return (
     <Container>
-      <div className="max-w-3xl mx-auto py-8">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">Students</h1>
-          <Link href="/students/add" className="btn no-underline">
-            Add Student
+      <div className="fade-up" style={{ maxWidth: 780, margin: "0 auto" }}>
+        <div className="page-header">
+          <h1 className="page-title">Students</h1>
+          <Link href="/students/add" className="btn btn-primary">
+            + Add Student
           </Link>
         </div>
 
-        {/* Search + Filter controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-          <div className="flex items-center gap-2 w-full sm:w-2/3">
-            <input
-              aria-label="Search students"
-              placeholder="Search by name, email or course..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+        {/* Search */}
+        <div className="filter-bar">
+          <input
+            aria-label="Search students"
+            placeholder="Search by name, email or course..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="form-input"
+          />
+        </div>
+
+        {/* Filters row */}
+        <div className="filter-bar">
+          <select
+            value={courseFilter}
+            onChange={(e) => setCourseFilter(e.target.value)}
+            className="form-input"
+            aria-label="Filter by course"
+          >
+            {courses.map((c) => (
+              <option key={c} value={c}>
+                {c === "all" ? "All Courses" : c}
+              </option>
+            ))}
+          </select>
+
+          {/* Custom Multi-Select Dropdown for Years */}
+          <div className="relative" ref={yearDropdownRef} style={{ position: 'relative' }}>
+            <div
               className="form-input"
-              style={{ width: "100%" }}
-            />
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', userSelect: 'none', background: '#fff', minWidth: '160px' }}
+              onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
+            >
+              <span>
+                {yearFilters.length === 0 ? "All Years" : `${yearFilters.length} Year(s) Selected`}
+              </span>
+              <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>▼</span>
+            </div>
+
+            {isYearDropdownOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '0.25rem',
+                  width: '100%',
+                  background: '#fff',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-md)',
+                  zIndex: 10,
+                  padding: '0.5rem 0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  maxHeight: '200px',
+                  overflowY: 'auto'
+                }}
+              >
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={yearFilters.length === 0}
+                    onChange={() => setYearFilters([])}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '0.9rem', color: yearFilters.length === 0 ? 'var(--color-primary)' : 'var(--color-text)' }}>All Years</span>
+                </label>
+
+                {years.filter(y => y !== "all").map((y) => (
+                  <label key={y} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={yearFilters.includes(y)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setYearFilters([...yearFilters, y]);
+                        } else {
+                          setYearFilters(yearFilters.filter(yr => yr !== y));
+                        }
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '0.9rem' }}>{y}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="muted text-sm mr-2">Course</label>
-            <select
-              value={courseFilter}
-              onChange={(e) => setCourseFilter(e.target.value)}
-              className="form-input"
-            >
-              {courses.map((c) => (
-                <option key={c} value={c}>
-                  {c === "all" ? "All" : c}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={feesFilter}
+            onChange={(e) => setFeesFilter(e.target.value)}
+            className="form-input"
+            aria-label="Filter by fees status"
+          >
+            <option value="all">All Fees</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
+          </select>
         </div>
 
         {filtered.length === 0 ? (
-          <p className="muted">No students found.</p>
+          <div className="empty-state">
+            <div className="empty-state-icon">📭</div>
+            <p className="empty-state-text">No students found.</p>
+          </div>
         ) : (
-          <ul className="space-y-3 list-none p-0">
-            {filtered.map((student) => (
-              <StudentCard
-                key={student.id}
-                id={student.id}
-                name={student.name}
-                course={student.course}
-                onDelete={handleDelete}
-              />
-            ))}
-          </ul>
+          <>
+            <ul style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              {filtered
+                .slice((page - 1) * limit, page * limit)
+                .map((student) => (
+                  <StudentCard
+                    key={student.id}
+                    id={student.id}
+                    name={student.name}
+                    course={student.course}
+                    email={student.email}
+                    semester={student.semester}
+                    feesPaid={student.feesPaid}
+                    onDelete={handleDelete}
+                  />
+                ))}
+            </ul>
+
+            <div className="pagination">
+              <div className="pagination-buttons">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                >
+                  ← Previous
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() =>
+                    setPage((p) =>
+                      p * limit < filtered.length ? p + 1 : p
+                    )
+                  }
+                  disabled={page * limit >= filtered.length}
+                >
+                  Next →
+                </button>
+              </div>
+
+              <div className="pagination-info">
+                <span>
+                  Page {page} of {Math.max(1, Math.ceil(filtered.length / limit))}
+                </span>
+                <span>·</span>
+                <label htmlFor="perPage">Per page</label>
+                <select
+                  id="perPage"
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="form-input"
+                  style={{ width: 72 }}
+                >
+                  <option value={5}>5</option>
+                  <option value={6}>6</option>
+                  <option value={10}>10</option>
+                </select>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </Container>
