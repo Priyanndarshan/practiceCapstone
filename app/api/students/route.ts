@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { students } from "@/lib/students";
+import { queryStudents, addStudent } from "@/lib/services/studentsService";
 import { Student } from "@/types/student";
 
 export async function GET(req: Request) {
@@ -7,40 +7,21 @@ export async function GET(req: Request) {
 
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 6;
-    const search = searchParams.get("search") || "";
-    const course = searchParams.get("course") || "";
+  const search = (searchParams.get("search") || "").trim();
+  const course = (searchParams.get("course") || "").trim();
+  const years = searchParams.getAll("year"); // multiple year params allowed
+  const fees = (searchParams.get("fees") || "").trim(); // 'paid' | 'unpaid' | ''
 
-    // 1️⃣ Filter + Search
-    let filtered = students.filter((s) => {
-        if (course && s.course !== course) return false;
+  const result = queryStudents({
+    page,
+    limit,
+    search,
+    course,
+    years,
+    fees: (fees as "paid" | "unpaid" | ""),
+  });
 
-        if (search) {
-            const q = search.toLowerCase();
-            return (
-                s.name.toLowerCase().includes(q) ||
-                s.email.toLowerCase().includes(q) ||
-                s.course.toLowerCase().includes(q)
-            );
-        }
-
-        return true;
-    });
-
-    const total = filtered.length;
-    const totalPages = Math.ceil(total / limit);
-
-    // 2️⃣ Pagination calculation
-    const start = (page - 1) * limit;
-    const end = start + limit;
-
-    const paginatedData = filtered.slice(start, end);
-
-    return NextResponse.json({
-        data: paginatedData,
-        total,
-        page,
-        totalPages,
-    });
+  return NextResponse.json(result);
 }
 
 export async function POST(req: Request) {
@@ -67,7 +48,7 @@ export async function POST(req: Request) {
             feesPaid: body.feesPaid === true,
         };
 
-        students.push(newStudent);
+        addStudent(newStudent);
 
         return NextResponse.json(newStudent, { status: 201 });
     } catch (error) {
