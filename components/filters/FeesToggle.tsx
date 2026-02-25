@@ -1,3 +1,5 @@
+// UI: FeesToggle
+// Purpose: small select control to filter students by fees status.
  "use client";
 
 import React from "react";

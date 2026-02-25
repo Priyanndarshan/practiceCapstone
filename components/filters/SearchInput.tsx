@@ -1,3 +1,5 @@
+// UI: SearchInput
+// Purpose: simple controlled input used for searching; supports Enter key and optional submit button.
  "use client";
 
 import React from "react";

@@ -1,9 +1,14 @@
+// Page: /students/add
+// Purpose: render a controlled form that creates a new student via POST /api/students.
+// For beginners: this shows form state, validation, network request, and navigation.
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Container from "@/components/layout/container";
 
+// Component: AddStudentPage
+// Renders the add-student form and handles submission to the API.
 export default function AddStudentPage() {
     const router = useRouter();
 

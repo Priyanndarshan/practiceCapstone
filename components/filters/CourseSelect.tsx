@@ -1,3 +1,5 @@
+// UI: CourseSelect
+// Purpose: dropdown to pick a course filter; options are passed from the hook/API.
  "use client";
 
 import React from "react";

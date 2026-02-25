@@ -1,3 +1,6 @@
+// Page: /students/[id]
+// Purpose: show details for one student and allow delete/navigation.
+// Teaching points: fetch on mount, conditional rendering (loading/error), and delete flow.
 "use client";
 
 import { useEffect, useState } from "react";
