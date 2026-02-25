@@ -17,14 +17,26 @@ export default function StudentsPage() {
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
   const [feesFilter, setFeesFilter] = useState<string>("all");
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(6);
 
   async function fetchStudents() {
     try {
-      const res = await fetch("/api/students");
-      const data = await res.json();
-      setStudents(data);
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        search: debouncedQuery,
+        course: courseFilter === "all" ? "" : courseFilter,
+      });
+
+      const res = await fetch(`/api/students?${params}`);
+      const result = await res.json();
+      setStudents(result.data);
+      setTotalPages(result.totalPages ?? 1);
     } catch (error) {
-      console.error("Failed to fetch students");
+      console.error("Failed to fetch students", error);
     } finally {
       setLoading(false);
     }
@@ -32,7 +44,8 @@ export default function StudentsPage() {
 
   useEffect(() => {
     fetchStudents();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, debouncedQuery, courseFilter]);
 
   useEffect(() => {
     const t = setTimeout(
@@ -65,29 +78,14 @@ export default function StudentsPage() {
     return ["all", ...Array.from(setY).sort((a, b) => b - a).map(String)];
   }, [students]);
 
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(6);
-
   useEffect(() => {
     setPage(1);
   }, [debouncedQuery, courseFilter, yearFilters, feesFilter]);
 
   const filtered = useMemo(() => {
-    return students.filter((s) => {
-      if (courseFilter !== "all" && s.course !== courseFilter) return false;
-      if (yearFilters.length > 0 && !yearFilters.includes(s.enrollmentYear.toString())) return false;
-      if (feesFilter === "paid" && !s.feesPaid) return false;
-      if (feesFilter === "unpaid" && s.feesPaid) return false;
-
-      if (!debouncedQuery) return true;
-      const q = debouncedQuery;
-      return (
-        s.name.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q) ||
-        s.course.toLowerCase().includes(q)
-      );
-    });
-  }, [students, courseFilter, yearFilters, feesFilter, debouncedQuery]);
+    // Data is now filtered & paginated server-side. Use the returned students directly.
+    return students;
+  }, [students]);
 
   async function handleDelete(id: string) {
     const confirmDelete = confirm("Are you sure you want to delete this student?");
@@ -221,20 +219,18 @@ export default function StudentsPage() {
         ) : (
           <>
             <ul style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-              {filtered
-                .slice((page - 1) * limit, page * limit)
-                .map((student) => (
-                  <StudentCard
-                    key={student.id}
-                    id={student.id}
-                    name={student.name}
-                    course={student.course}
-                    email={student.email}
-                    semester={student.semester}
-                    feesPaid={student.feesPaid}
-                    onDelete={handleDelete}
-                  />
-                ))}
+              {filtered.map((student) => (
+                <StudentCard
+                  key={student.id}
+                  id={student.id}
+                  name={student.name}
+                  course={student.course}
+                  email={student.email}
+                  semester={student.semester}
+                  feesPaid={student.feesPaid}
+                  onDelete={handleDelete}
+                />
+              ))}
             </ul>
 
             <div className="pagination">
@@ -249,11 +245,9 @@ export default function StudentsPage() {
                 <button
                   className="btn btn-secondary"
                   onClick={() =>
-                    setPage((p) =>
-                      p * limit < filtered.length ? p + 1 : p
-                    )
+                    setPage((p) => Math.min(totalPages, p + 1))
                   }
-                  disabled={page * limit >= filtered.length}
+                  disabled={page >= totalPages}
                 >
                   Next →
                 </button>
@@ -261,7 +255,7 @@ export default function StudentsPage() {
 
               <div className="pagination-info">
                 <span>
-                  Page {page} of {Math.max(1, Math.ceil(filtered.length / limit))}
+                  Page {page} of {Math.max(1, totalPages)}
                 </span>
                 <span>·</span>
                 <label htmlFor="perPage">Per page</label>

@@ -2,8 +2,45 @@ import { NextResponse } from "next/server";
 import { students } from "@/lib/students";
 import { Student } from "@/types/student";
 
-export async function GET() {
-    return NextResponse.json(students);
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+
+    const page = Number(searchParams.get("page")) || 1;
+    const limit = Number(searchParams.get("limit")) || 6;
+    const search = searchParams.get("search") || "";
+    const course = searchParams.get("course") || "";
+
+    // 1️⃣ Filter + Search
+    let filtered = students.filter((s) => {
+        if (course && s.course !== course) return false;
+
+        if (search) {
+            const q = search.toLowerCase();
+            return (
+                s.name.toLowerCase().includes(q) ||
+                s.email.toLowerCase().includes(q) ||
+                s.course.toLowerCase().includes(q)
+            );
+        }
+
+        return true;
+    });
+
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / limit);
+
+    // 2️⃣ Pagination calculation
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+    const paginatedData = filtered.slice(start, end);
+
+    return NextResponse.json({
+        data: paginatedData,
+        total,
+        page,
+        totalPages,
+    });
 }
 
 export async function POST(req: Request) {
