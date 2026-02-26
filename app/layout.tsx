@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full scroll-smooth">
-      <body className="font-sans antialiased min-h-full bg-white text-gray-900 leading-relaxed">
+      <body className="min-h-full bg-white font-sans text-base text-gray-900 antialiased leading-relaxed">
         <Header />
         {children}
       </body>

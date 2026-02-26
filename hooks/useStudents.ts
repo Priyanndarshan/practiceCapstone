@@ -69,9 +69,32 @@ export function useStudents(initialLimit = 6): UseStudentsReturn { // hook facto
       if (feesFilter && feesFilter !== "all") {
         params.set("fees", feesFilter); // include fees filter if set
       }
-
+// /api/students?page=1&limit=6&search=
+///api/students?page=1&limit=6&search=aarav
+///api/students?page=1&limit=6&search=&fees=paid
+//api/students?page=2&limit=6&search=
       const res = await fetch(`/api/students?${params}`); // call API with constructed params
-      const result = await res.json(); // parse JSON response
+      const result = await res.json(); 
+      // {
+      //   "data": [
+      //     {
+      //       "id": "uuid-string",
+      //       "name": "Aarav Sharma",
+      //       "age": 20,
+      //       "course": "B.Tech CSE",
+      //       "email": "aarav@example.com",
+      //       "semester": 4,
+      //       "enrollmentYear": 2022,
+      //       "feesPaid": true
+      //     }
+      //   ],
+      //   "total": 42,
+      //   "page": 1,
+      //   "totalPages": 7,
+      //   "filters": {
+      //     "courses": ["all", "B.Tech CSE", "B.Tech ECE", "BCA"]
+      //   }
+      // }// parse JSON response
       setStudents(result.data || []); // update students state (fallback to empty array)
       setTotalPages(result.totalPages ?? 1); // update totalPages if provided by API
       if (result.filters) {

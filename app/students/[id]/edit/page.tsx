@@ -6,6 +6,11 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/layout/container";
 
+const inputBase =
+  "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200";
+const labelBase = "text-sm font-semibold text-gray-500";
+const groupBase = "flex flex-col gap-1.5";
+
 export default function EditStudentPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : params.id?.[0];
@@ -108,14 +113,9 @@ export default function EditStudentPage() {
     }
   }
 
-  const inputClasses =
-    "w-full py-2 px-3 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 outline-none transition-colors focus:border-indigo-600 focus:ring-[3px] focus:ring-indigo-600/10 placeholder:text-gray-400";
-  const labelClasses = "text-sm font-semibold text-gray-500";
-  const groupClasses = "flex flex-col gap-1.5";
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-gray-400 text-[0.95rem]">
+      <div className="flex items-center justify-center py-16 text-base text-gray-400">
         Loading...
       </div>
     );
@@ -124,12 +124,12 @@ export default function EditStudentPage() {
   if (notFound || !id) {
     return (
       <Container>
-        <div className="text-center py-12 text-gray-400">
-          <div className="text-4xl mb-3">😕</div>
-          <p className="text-[0.95rem]">Student not found.</p>
+        <div className="py-12 text-center text-gray-400">
+          <div className="mb-3 text-4xl">😕</div>
+          <p className="text-base">Student not found.</p>
           <Link
             href="/students"
-            className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg mt-4 no-underline transition-colors hover:bg-gray-50 hover:text-gray-900"
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-500 no-underline transition-colors hover:bg-gray-50 hover:text-gray-900"
           >
             ← Back to Students
           </Link>
@@ -140,12 +140,12 @@ export default function EditStudentPage() {
 
   return (
     <Container>
-      <div className="max-w-[560px] mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 flex-wrap">
+      <div className="mx-auto max-w-xl">
+        <div className="mb-6 flex flex-col flex-wrap justify-between gap-3 sm:flex-row sm:items-center">
           <h1 className="text-2xl font-bold tracking-tight">Edit Student</h1>
           <Link
             href={`/students/${id}`}
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-700 no-underline"
+            className="text-sm font-medium text-indigo-600 no-underline hover:text-indigo-700"
           >
             ← View details
           </Link>
@@ -153,14 +153,14 @@ export default function EditStudentPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col gap-4"
+          className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
         >
-          <div className={groupClasses}>
-            <label className={labelClasses} htmlFor="name">
+          <div className={groupBase}>
+            <label className={labelBase} htmlFor="name">
               Full Name
             </label>
             <input
-              className={inputClasses}
+              className={inputBase}
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -169,12 +169,12 @@ export default function EditStudentPage() {
             />
           </div>
 
-          <div className={groupClasses}>
-            <label className={labelClasses} htmlFor="age">
+          <div className={groupBase}>
+            <label className={labelBase} htmlFor="age">
               Age
             </label>
             <input
-              className={inputClasses}
+              className={inputBase}
               id="age"
               value={age}
               onChange={(e) => setAge(e.target.value)}
@@ -184,12 +184,12 @@ export default function EditStudentPage() {
             />
           </div>
 
-          <div className={groupClasses}>
-            <label className={labelClasses} htmlFor="course">
+          <div className={groupBase}>
+            <label className={labelBase} htmlFor="course">
               Course
             </label>
             <input
-              className={inputClasses}
+              className={inputBase}
               id="course"
               value={course}
               onChange={(e) => setCourse(e.target.value)}
@@ -198,12 +198,12 @@ export default function EditStudentPage() {
             />
           </div>
 
-          <div className={groupClasses}>
-            <label className={labelClasses} htmlFor="email">
+          <div className={groupBase}>
+            <label className={labelBase} htmlFor="email">
               Email
             </label>
             <input
-              className={inputClasses}
+              className={inputBase}
               id="email"
               type="email"
               value={email}
@@ -213,13 +213,13 @@ export default function EditStudentPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className={groupClasses}>
-              <label className={labelClasses} htmlFor="semester">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className={groupBase}>
+              <label className={labelBase} htmlFor="semester">
                 Semester
               </label>
               <input
-                className={inputClasses}
+                className={inputBase}
                 id="semester"
                 value={semester}
                 onChange={(e) => setSemester(e.target.value)}
@@ -230,12 +230,12 @@ export default function EditStudentPage() {
                 placeholder="e.g. 4"
               />
             </div>
-            <div className={groupClasses}>
-              <label className={labelClasses} htmlFor="enrollmentYear">
+            <div className={groupBase}>
+              <label className={labelBase} htmlFor="enrollmentYear">
                 Enrollment Year
               </label>
               <input
-                className={inputClasses}
+                className={inputBase}
                 id="enrollmentYear"
                 value={enrollmentYear}
                 onChange={(e) => setEnrollmentYear(e.target.value)}
@@ -254,30 +254,33 @@ export default function EditStudentPage() {
               id="feesPaid"
               checked={feesPaid}
               onChange={(e) => setFeesPaid(e.target.checked)}
-              className="w-[18px] h-[18px] accent-indigo-600 cursor-pointer"
+              className="h-4 w-4 cursor-pointer accent-indigo-600"
             />
-            <label htmlFor="feesPaid" className="text-sm font-medium text-gray-500 cursor-pointer">
+            <label
+              htmlFor="feesPaid"
+              className="cursor-pointer text-sm font-medium text-gray-500"
+            >
               Fees Paid
             </label>
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm py-2 px-3 bg-red-500/5 rounded border border-red-500/15">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
               {error}
             </p>
           )}
 
-          <div className="flex gap-3 mt-2">
+          <div className="mt-2 flex gap-3">
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold text-white bg-indigo-600 border-none rounded-lg cursor-pointer transition-colors hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-70"
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-none bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 active:scale-95 disabled:opacity-70"
             >
               {submitting ? "Saving..." : "Save Changes"}
             </button>
             <Link
               href={`/students/${id}`}
-              className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg no-underline transition-colors hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-500 no-underline transition-colors hover:bg-gray-50 hover:text-gray-900 active:scale-95"
             >
               Cancel
             </Link>
