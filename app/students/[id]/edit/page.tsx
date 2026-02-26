@@ -1,11 +1,14 @@
-// Page: /students/add - form to create a new student via POST /api/students.
+// Page: /students/[id]/edit - form to update a student via PATCH /api/students/[id].
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Container from "@/components/layout/container";
 
-export default function AddStudentPage() {
+export default function EditStudentPage() {
+  const params = useParams();
+  const id = typeof params.id === "string" ? params.id : params.id?.[0];
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -17,9 +20,41 @@ export default function AddStudentPage() {
   const [feesPaid, setFeesPaid] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    async function load() {
+      try {
+        const res = await fetch(`/api/students/${id}`);
+        if (!res.ok) {
+          setNotFound(true);
+          return;
+        }
+        const data = await res.json();
+        setName(data.name ?? "");
+        setAge(String(data.age ?? ""));
+        setCourse(data.course ?? "");
+        setEmail(data.email ?? "");
+        setSemester(String(data.semester ?? ""));
+        setEnrollmentYear(String(data.enrollmentYear ?? ""));
+        setFeesPaid(Boolean(data.feesPaid));
+      } catch {
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [id]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!id) return;
     setError(null);
 
     if (
@@ -46,8 +81,8 @@ export default function AddStudentPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/students", {
-        method: "POST",
+      const res = await fetch(`/api/students/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
@@ -62,10 +97,10 @@ export default function AddStudentPage() {
 
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
-        throw new Error(payload?.message || "Failed to create student");
+        throw new Error(payload?.message || "Failed to update student");
       }
 
-      router.push("/students");
+      router.push(`/students/${id}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
@@ -78,11 +113,42 @@ export default function AddStudentPage() {
   const labelClasses = "text-sm font-semibold text-gray-500";
   const groupClasses = "flex flex-col gap-1.5";
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-gray-400 text-[0.95rem]">
+        Loading...
+      </div>
+    );
+  }
+
+  if (notFound || !id) {
+    return (
+      <Container>
+        <div className="text-center py-12 text-gray-400">
+          <div className="text-4xl mb-3">😕</div>
+          <p className="text-[0.95rem]">Student not found.</p>
+          <Link
+            href="/students"
+            className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg mt-4 no-underline transition-colors hover:bg-gray-50 hover:text-gray-900"
+          >
+            ← Back to Students
+          </Link>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <div className="max-w-[560px] mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 flex-wrap">
-          <h1 className="text-2xl font-bold tracking-tight">Add Student</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Student</h1>
+          <Link
+            href={`/students/${id}`}
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-700 no-underline"
+          >
+            ← View details
+          </Link>
         </div>
 
         <form
@@ -207,15 +273,14 @@ export default function AddStudentPage() {
               disabled={submitting}
               className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold text-white bg-indigo-600 border-none rounded-lg cursor-pointer transition-colors hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-70"
             >
-              {submitting ? "Adding..." : "Add Student"}
+              {submitting ? "Saving..." : "Save Changes"}
             </button>
-            <button
-              type="button"
-              onClick={() => router.push("/students")}
-              className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
+            <Link
+              href={`/students/${id}`}
+              className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg no-underline transition-colors hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
             >
               Cancel
-            </button>
+            </Link>
           </div>
         </form>
       </div>

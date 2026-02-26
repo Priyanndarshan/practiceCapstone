@@ -1,99 +1,82 @@
-// Students page (refactored) - commented line-by-line for clarity.
-// This page shows a searchable, filterable, paginated list of students.
-// Teaching points: custom hook usage (useStudents), composition of filter components, and pagination.
-
-// Enable client-side React features (hooks, state) for this page.
+// Students page - searchable, filterable, paginated list.
 "use client";
 
-// Import next/link for client navigation without full reloads.
 import Link from "next/link";
-// Import Container component to center and constrain page width.
 import Container from "../../components/layout/container";
-// Import StudentCard component to render each student row.
 import StudentCard from "../../components/ui/student-card";
-// Import SearchInput component (controlled input bound to hook's query).
 import SearchInput from "../../components/filters/SearchInput";
-// Import CourseSelect component to filter by course.
 import CourseSelect from "../../components/filters/CourseSelect";
-// Import FeesToggle to filter by fees paid/unpaid.
 import FeesToggle from "../../components/filters/FeesToggle";
-// Import the useStudents hook which encapsulates fetching, filters and pagination.
 import { useStudents } from "../../hooks/useStudents";
 
-// Default export: StudentsPage component
 export default function StudentsPage() {
-  // Destructure the API returned by useStudents to access data and controls
   const {
-    students, // current page of students
-    loading, // loading indicator while fetching
-    query, // current search input value
-    setQuery, // function to update search input
-    courses, // available course options for the CourseSelect dropdown
-    courseFilter, // currently selected course filter
-    setCourseFilter, // setter for courseFilter
-    feesFilter, // currently selected fees filter
-    setFeesFilter, // setter for feesFilter
-    page, // current page number
-    setPage, // function to change page
-    limit, // items per page
-    setLimit, // setter for items per page
-    totalPages, // total pages available
-    refresh, // manual refresh function to re-fetch data
-  } = useStudents(6); // initialize hook with default page size = 6
+    students,
+    loading,
+    query,
+    setQuery,
+    courses,
+    courseFilter,
+    setCourseFilter,
+    feesFilter,
+    setFeesFilter,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalPages,
+    refresh,
+  } = useStudents(6);
 
-  // handleDelete: invoked when a StudentCard triggers deletion.
-  // Shows a confirmation dialog, calls DELETE endpoint, and refreshes results.
   async function handleDelete(id: string) {
     const confirmDelete = confirm("Are you sure you want to delete this student?");
-    if (!confirmDelete) return; // abort if user cancels
-
-    await fetch(`/api/students/${id}`, { method: "DELETE" }); // request server to delete
-    await refresh(); // refresh the current list to reflect deletion
+    if (!confirmDelete) return;
+    await fetch(`/api/students/${id}`, { method: "DELETE" });
+    await refresh();
   }
 
-  // If data is still loading, show a simple loading state.
   if (loading) {
-    return <div className="loading-state">Loading students...</div>;
+    return (
+      <div className="flex items-center justify-center py-16 text-gray-400 text-[0.95rem]">
+        Loading students...
+      </div>
+    );
   }
 
-  // Main render: container with header, filters, list, and pagination.
   return (
     <Container>
-      {/* page content wrapper with subtle animation class */}
-      <div className="fade-up" style={{ maxWidth: 780, margin: "0 auto" }}>
-        {/* Header row: title + Add Student button */}
-        <div className="page-header">
-          <h1 className="page-title">Students</h1>
-          {/* Link to add student page */}
-          <Link href="/students/add" className="btn btn-primary">
+      <div className="max-w-[780px] mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 flex-wrap">
+          <h1 className="text-2xl font-bold tracking-tight">Students</h1>
+          <Link
+            href="/students/add"
+            className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold text-white bg-indigo-600 border-none rounded-lg cursor-pointer transition-colors hover:bg-indigo-700 active:scale-[0.98] no-underline"
+          >
             + Add Student
           </Link>
         </div>
 
-        {/* Search bar row */}
-        <div className="filter-bar">
-          {/* Controlled search input bound to hook's query state */}
-          <SearchInput value={query} onChange={setQuery} placeholder="Search by name, email or course..." />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-6 flex-wrap">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search by name, email or course..."
+          />
         </div>
 
-        {/* Filter controls row: course select and fees toggle */}
-        <div className="filter-bar">
-          {/* Dropdown to select course; options come from the hook */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-6 flex-wrap">
           <CourseSelect options={courses} value={courseFilter} onChange={setCourseFilter} />
-          {/* Toggle to filter by fees paid/unpaid */}
           <FeesToggle value={feesFilter} onChange={setFeesFilter} />
         </div>
 
-        {/* If there are no students after filtering, show an empty state */}
         {students.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">📭</div>
-            <p className="empty-state-text">No students found.</p>
+          <div className="text-center py-12 text-gray-400">
+            <div className="text-4xl mb-3">📭</div>
+            <p className="text-[0.95rem]">No students found.</p>
           </div>
         ) : (
           <>
-            {/* Student list: render a StudentCard for each student */}
-            <ul className="student-list">
+            <ul className="flex flex-col gap-2 list-none p-0 m-0">
               {students.map((student) => (
                 <StudentCard
                   key={student.id}
@@ -103,33 +86,46 @@ export default function StudentsPage() {
                   email={student.email}
                   semester={student.semester}
                   feesPaid={student.feesPaid}
-                  onDelete={handleDelete} // pass delete handler down as prop
+                  onDelete={handleDelete}
                 />
               ))}
             </ul>
 
-            {/* Pagination controls: previous/next and per-page selector */}
-            <div className="pagination">
-              <div className="pagination-buttons">
-                {/* Previous button; disabled on first page */}
-                <button className="btn btn-secondary" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6 flex-wrap">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                >
                   ← Previous
                 </button>
-                {/* Next button; disabled on last page */}
-                <button className="btn btn-secondary" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                >
                   Next →
                 </button>
               </div>
 
-              <div className="pagination-info">
-                {/* Display current page / total pages */}
+              <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span>
                   Page {page} of {Math.max(1, totalPages)}
                 </span>
                 <span>·</span>
                 <label htmlFor="perPage">Per page</label>
-                {/* Per-page dropdown to change page size; resets to page 1 on change */}
-                <select id="perPage" value={limit} onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }} className="form-input" style={{ width: 72 }}>
+                <select
+                  id="perPage"
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="w-[72px] py-2 px-3 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 outline-none focus:border-indigo-600 focus:ring-[3px] focus:ring-indigo-600/10"
+                >
                   <option value={5}>5</option>
                   <option value={6}>6</option>
                   <option value={10}>10</option>

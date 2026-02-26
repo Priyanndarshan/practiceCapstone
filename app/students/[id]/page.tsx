@@ -1,6 +1,4 @@
-// Page: /students/[id]
-// Purpose: show details for one student and allow delete/navigation.
-// Teaching points: fetch on mount, conditional rendering (loading/error), and delete flow.
+// Page: /students/[id] - student details with delete/navigation.
 "use client";
 
 import { useEffect, useState } from "react";
@@ -41,14 +39,23 @@ export default function StudentDetailsPage() {
     if (id) fetchStudent();
   }, [id]);
 
-  if (loading) return <div className="loading-state">Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center py-16 text-gray-400 text-[0.95rem]">
+        Loading...
+      </div>
+    );
+
   if (error)
     return (
       <Container>
-        <div className="empty-state">
-          <div className="empty-state-icon">😕</div>
-          <p className="empty-state-text">{error}</p>
-          <Link href="/students" className="btn btn-secondary" style={{ marginTop: "1rem", display: "inline-flex" }}>
+        <div className="text-center py-12 text-gray-400">
+          <div className="text-4xl mb-3">😕</div>
+          <p className="text-[0.95rem]">{error}</p>
+          <Link
+            href="/students"
+            className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg mt-4 no-underline transition-colors hover:bg-gray-50 hover:text-gray-900"
+          >
             ← Back to Students
           </Link>
         </div>
@@ -57,43 +64,67 @@ export default function StudentDetailsPage() {
 
   return (
     <Container>
-      <div className="fade-up" style={{ maxWidth: 640, margin: "0 auto" }}>
-        <div className="page-header">
-          <h1 className="page-title">Student Details</h1>
+      <div className="max-w-[640px] mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 flex-wrap">
+          <h1 className="text-2xl font-bold tracking-tight">Student Details</h1>
         </div>
 
-        <div className="card">
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
-            <div className="student-card-avatar" style={{ width: 56, height: 56, fontSize: "1.4rem" }}>
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-600 to-cyan-500 text-white font-bold text-2xl flex items-center justify-center shrink-0">
               {student?.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 700 }}>{student?.name}</h2>
-              <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary)" }}>{student?.course}</p>
+              <h2 className="text-xl font-bold text-gray-900">{student?.name}</h2>
+              <p className="text-sm text-gray-500">{student?.course}</p>
             </div>
           </div>
 
-          <div className="detail-grid">
-            <div className="detail-item">
-              <span className="detail-label">Age</span>
-              <span className="detail-value">{student?.age} years</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Age
+              </span>
+              <span className="text-[0.92rem] font-medium text-gray-900">
+                {student?.age} years
+              </span>
             </div>
-            <div className="detail-item">
-              <span className="detail-label">Email</span>
-              <span className="detail-value">{student?.email}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Email
+              </span>
+              <span className="text-[0.92rem] font-medium text-gray-900">
+                {student?.email}
+              </span>
             </div>
-            <div className="detail-item">
-              <span className="detail-label">Semester</span>
-              <span className="detail-value">Semester {student?.semester}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Semester
+              </span>
+              <span className="text-[0.92rem] font-medium text-gray-900">
+                Semester {student?.semester}
+              </span>
             </div>
-            <div className="detail-item">
-              <span className="detail-label">Enrollment Year</span>
-              <span className="detail-value">{student?.enrollmentYear}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Enrollment Year
+              </span>
+              <span className="text-[0.92rem] font-medium text-gray-900">
+                {student?.enrollmentYear}
+              </span>
             </div>
-            <div className="detail-item">
-              <span className="detail-label">Fees Status</span>
-              <span className="detail-value">
-                <span className={`badge ${student?.feesPaid ? "badge-success" : "badge-warning"}`}>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Fees Status
+              </span>
+              <span className="text-[0.92rem] font-medium text-gray-900">
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 text-[0.68rem] font-semibold rounded-full tracking-wide ${
+                    student?.feesPaid
+                      ? "bg-emerald-500/10 text-emerald-600"
+                      : "bg-amber-500/10 text-amber-600"
+                  }`}
+                >
                   {student?.feesPaid ? "Paid" : "Unpaid"}
                 </span>
               </span>
@@ -101,14 +132,24 @@ export default function StudentDetailsPage() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.25rem" }}>
-          <Link href={`/students/${id}/edit`} className="btn btn-primary">
+        <div className="flex flex-wrap gap-3 mt-5">
+          <Link
+            href={`/students/${id}/edit`}
+            className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold text-white bg-indigo-600 border-none rounded-lg no-underline transition-colors hover:bg-indigo-700 active:scale-[0.98]"
+          >
             Edit Student
           </Link>
-          <button onClick={handleDelete} className="btn btn-danger">
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold text-white bg-red-500 border-none rounded-lg cursor-pointer transition-colors hover:bg-red-600 active:scale-[0.98]"
+          >
             Delete
           </button>
-          <Link href="/students" className="btn btn-secondary">
+          <Link
+            href="/students"
+            className="inline-flex items-center justify-center gap-2 py-2 px-4 text-sm font-semibold bg-white text-gray-500 border border-gray-200 rounded-lg no-underline transition-colors hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
+          >
             ← Back
           </Link>
         </div>

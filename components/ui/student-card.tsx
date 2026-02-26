@@ -1,56 +1,67 @@
-// UI: StudentCard
-// Small presentational component that renders student info and action buttons.
-// Each line below includes a short comment explaining its purpose.
-import Link from "next/link"; // Next.js Link for client-side navigation
+// UI: StudentCard - presentational component for student info and actions.
+import Link from "next/link";
 
 type Props = {
-  id: string; // student id (used for links and actions)
-  name: string; // student name to display
-  course: string; // course name to display
-  email: string; // email to display in metadata
-  semester: number; // semester number to display
-  feesPaid: boolean; // whether fees are paid (affects badge)
-  onDelete?: (id: string) => void; // optional delete callback passed from parent
+  id: string;
+  name: string;
+  course: string;
+  email: string;
+  semester: number;
+  feesPaid: boolean;
+  onDelete?: (id: string) => void;
 };
 
 export default function StudentCard({
-  id, // student's id
-  name, // student's name
-  course, // student's course
-  email, // student's email
-  semester, // student's semester
-  feesPaid, // boolean for fees status
-  onDelete, // optional delete handler
+  id,
+  name,
+  course,
+  email,
+  semester,
+  feesPaid,
+  onDelete,
 }: Props) {
   return (
-    <li className="student-card"> {/* list item wrapper for the card */}
-      <div className="student-card-info"> {/* left side: avatar + basic info */}
-        <div className="student-card-avatar"> {/* visual avatar showing initial */}
-          {name.charAt(0).toUpperCase() /* first initial from name */ }
+    <li className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-200 rounded-xl py-3.5 px-4 transition-shadow hover:shadow-md hover:border-indigo-500/15">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-cyan-500 text-white font-bold text-base flex items-center justify-center shrink-0">
+          {name.charAt(0).toUpperCase()}
         </div>
-        <div> {/* textual info block */}
-          <p className="student-card-name">{name /* display full name */}</p>
-          <p className="student-card-course">{course /* display course */}</p>
-          <p className="student-card-meta"> {/* meta row: email, semester, fees badge */}
+        <div>
+          <p className="text-[0.9rem] font-semibold text-gray-900">{name}</p>
+          <p className="text-[0.78rem] text-gray-500 mt-0.5">{course}</p>
+          <p className="text-[0.72rem] text-gray-400 mt-0.5 flex items-center gap-1.5">
             {email} · Sem {semester}
-            <span className={`badge ${feesPaid ? "badge-success" : "badge-warning"}` /* choose badge style based on feesPaid */}>
-              {feesPaid ? "Paid" : "Unpaid" /* show Paid/Unpaid text */}
+            <span
+              className={`inline-flex items-center px-2 py-0.5 text-[0.68rem] font-semibold rounded-full tracking-wide ${
+                feesPaid
+                  ? "bg-emerald-500/10 text-emerald-600"
+                  : "bg-amber-500/10 text-amber-600"
+              }`}
+            >
+              {feesPaid ? "Paid" : "Unpaid"}
             </span>
           </p>
         </div>
       </div>
 
-      <div className="student-card-actions"> {/* right side: action buttons */}
-        <Link href={`/students/${id}`} className="btn-outline"> {/* client nav to detail page */}
+      <div className="flex items-center gap-1.5 shrink-0 flex-wrap w-full sm:w-auto pt-2.5 sm:pt-0 border-t border-gray-100 sm:border-0 sm:min-w-0">
+        <Link
+          href={`/students/${id}`}
+          className="inline-flex items-center justify-center py-1.5 px-3 text-[0.78rem] font-medium text-gray-500 bg-transparent border border-gray-200 rounded transition-colors hover:border-indigo-600 hover:text-indigo-600 hover:bg-indigo-50"
+        >
           View
         </Link>
-        <Link href={`/students/${id}/edit`} className="btn-outline"> {/* client nav to edit page */}
+        <Link
+          href={`/students/${id}/edit`}
+          className="inline-flex items-center justify-center py-1.5 px-3 text-[0.78rem] font-medium text-gray-500 bg-transparent border border-gray-200 rounded transition-colors hover:border-indigo-600 hover:text-indigo-600 hover:bg-indigo-50"
+        >
           Edit
         </Link>
         <button
-          className="btn-danger-sm" // small red delete button
-          onClick={() => onDelete && onDelete(id) /* call parent-supplied delete if present */}
-          aria-label={`Delete ${name}`} // accessible label for screen readers
+          type="button"
+          className="inline-flex items-center py-1.5 px-3 text-[0.78rem] font-medium text-red-500 bg-transparent border border-red-500/25 rounded transition-colors hover:bg-red-500 hover:text-white hover:border-red-500"
+          onClick={() => onDelete?.(id)}
+          aria-label={`Delete ${name}`}
         >
           Delete
         </button>
