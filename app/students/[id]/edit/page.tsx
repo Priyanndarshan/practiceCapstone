@@ -1,30 +1,18 @@
 // Page: /students/[id]/edit - form to update a student via PATCH /api/students/[id].
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/layout/container";
-
-const inputBase =
-  "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200";
-const labelBase = "text-sm font-semibold text-gray-500";
-const groupBase = "flex flex-col gap-1.5";
+import { useStudentForm, inputBase, labelBase, groupBase } from "@/hooks/useStudentForm";
 
 export default function EditStudentPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : params.id?.[0];
   const router = useRouter();
+  const form = useStudentForm();
 
-  const [name, setName] = useState("");
-  const [age, setAge] = useState("");
-  const [course, setCourse] = useState("");
-  const [email, setEmail] = useState("");
-  const [semester, setSemester] = useState("");
-  const [enrollmentYear, setEnrollmentYear] = useState("");
-  const [feesPaid, setFeesPaid] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -41,13 +29,7 @@ export default function EditStudentPage() {
           return;
         }
         const data = await res.json();
-        setName(data.name ?? "");
-        setAge(String(data.age ?? ""));
-        setCourse(data.course ?? "");
-        setEmail(data.email ?? "");
-        setSemester(String(data.semester ?? ""));
-        setEnrollmentYear(String(data.enrollmentYear ?? ""));
-        setFeesPaid(Boolean(data.feesPaid));
+        form.setFormFromStudent(data);
       } catch {
         setNotFound(true);
       } finally {
@@ -57,47 +39,17 @@ export default function EditStudentPage() {
     load();
   }, [id]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!id) return;
-    setError(null);
+    if (!form.validate()) return;
 
-    if (
-      !name.trim() ||
-      !age.trim() ||
-      !course.trim() ||
-      !email.trim() ||
-      !semester.trim() ||
-      !enrollmentYear.trim()
-    ) {
-      setError("All fields are required.");
-      return;
-    }
-
-    if (isNaN(Number(age)) || Number(age) <= 0) {
-      setError("Age must be a valid positive number.");
-      return;
-    }
-
-    if (isNaN(Number(semester)) || Number(semester) < 1 || Number(semester) > 10) {
-      setError("Semester must be between 1 and 10.");
-      return;
-    }
-
-    setSubmitting(true);
+    form.setSubmitting(true);
     try {
       const res = await fetch(`/api/students/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          age: Number(age),
-          course: course.trim(),
-          email: email.trim(),
-          semester: Number(semester),
-          enrollmentYear: Number(enrollmentYear),
-          feesPaid,
-        }),
+        body: JSON.stringify(form.getPayload()),
       });
 
       if (!res.ok) {
@@ -107,9 +59,9 @@ export default function EditStudentPage() {
 
       router.push(`/students/${id}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+      form.setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
-      setSubmitting(false);
+      form.setSubmitting(false);
     }
   }
 
@@ -162,8 +114,8 @@ export default function EditStudentPage() {
             <input
               className={inputBase}
               id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={form.name}
+              onChange={(e) => form.setName(e.target.value)}
               required
               placeholder="e.g. Aarav Sharma"
             />
@@ -176,8 +128,8 @@ export default function EditStudentPage() {
             <input
               className={inputBase}
               id="age"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
+              value={form.age}
+              onChange={(e) => form.setAge(e.target.value)}
               required
               inputMode="numeric"
               placeholder="e.g. 20"
@@ -191,8 +143,8 @@ export default function EditStudentPage() {
             <input
               className={inputBase}
               id="course"
-              value={course}
-              onChange={(e) => setCourse(e.target.value)}
+              value={form.course}
+              onChange={(e) => form.setCourse(e.target.value)}
               required
               placeholder="e.g. B.Tech CSE"
             />
@@ -206,8 +158,8 @@ export default function EditStudentPage() {
               className={inputBase}
               id="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={form.email}
+              onChange={(e) => form.setEmail(e.target.value)}
               required
               placeholder="e.g. aarav@vit.ac.in"
             />
@@ -221,8 +173,8 @@ export default function EditStudentPage() {
               <input
                 className={inputBase}
                 id="semester"
-                value={semester}
-                onChange={(e) => setSemester(e.target.value)}
+                value={form.semester}
+                onChange={(e) => form.setSemester(e.target.value)}
                 required
                 inputMode="numeric"
                 min={1}
@@ -237,8 +189,8 @@ export default function EditStudentPage() {
               <input
                 className={inputBase}
                 id="enrollmentYear"
-                value={enrollmentYear}
-                onChange={(e) => setEnrollmentYear(e.target.value)}
+                value={form.enrollmentYear}
+                onChange={(e) => form.setEnrollmentYear(e.target.value)}
                 required
                 inputMode="numeric"
                 min={2018}
@@ -252,8 +204,8 @@ export default function EditStudentPage() {
             <input
               type="checkbox"
               id="feesPaid"
-              checked={feesPaid}
-              onChange={(e) => setFeesPaid(e.target.checked)}
+              checked={form.feesPaid}
+              onChange={(e) => form.setFeesPaid(e.target.checked)}
               className="h-4 w-4 cursor-pointer accent-indigo-600"
             />
             <label
@@ -264,19 +216,19 @@ export default function EditStudentPage() {
             </label>
           </div>
 
-          {error && (
+          {form.error && (
             <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-              {error}
+              {form.error}
             </p>
           )}
 
           <div className="mt-2 flex gap-3">
             <button
               type="submit"
-              disabled={submitting}
+              disabled={form.submitting}
               className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-none bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 active:scale-95 disabled:opacity-70"
             >
-              {submitting ? "Saving..." : "Save Changes"}
+              {form.submitting ? "Saving..." : "Save Changes"}
             </button>
             <Link
               href={`/students/${id}`}

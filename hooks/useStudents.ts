@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"; // React hooks used by the custom hook
+import { useEffect, useState } from "react"; // React hooks used by the custom hook
 import { Student } from "@/types/student"; // Shared TypeScript type for student shape
 
 type UseStudentsReturn = { // Defines the shape of the object returned by the hook
