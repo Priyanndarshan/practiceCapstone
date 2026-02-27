@@ -17,45 +17,49 @@ export type StudentFormPayload = {
 };
 
 export function useStudentForm() {
-  const [name, setName] = useState("");
-  const [age, setAge] = useState("");
-  const [course, setCourse] = useState("");
-  const [email, setEmail] = useState("");
-  const [semester, setSemester] = useState("");
-  const [enrollmentYear, setEnrollmentYear] = useState("");
-  const [feesPaid, setFeesPaid] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    age: "",
+    course: "",
+    email: "",
+    semester: "",
+    enrollmentYear: "",
+    feesPaid: false,
+  });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   function setFormFromStudent(s: Student | null) {
     if (!s) return;
-    setName(s.name ?? "");
-    setAge(String(s.age ?? ""));
-    setCourse(s.course ?? "");
-    setEmail(s.email ?? "");
-    setSemester(String(s.semester ?? ""));
-    setEnrollmentYear(String(s.enrollmentYear ?? ""));
-    setFeesPaid(Boolean(s.feesPaid));
+    setForm({
+      name: s.name ?? "",
+      age: String(s.age ?? ""),
+      course: s.course ?? "",
+      email: s.email ?? "",
+      semester: String(s.semester ?? ""),
+      enrollmentYear: String(s.enrollmentYear ?? ""),
+      feesPaid: Boolean(s.feesPaid),
+    });
   }
 
   function validate(): boolean {
     setError(null);
     if (
-      !name.trim() ||
-      !age.trim() ||
-      !course.trim() ||
-      !email.trim() ||
-      !semester.trim() ||
-      !enrollmentYear.trim()
+      !form.name.trim() ||
+      !form.age.trim() ||
+      !form.course.trim() ||
+      !form.email.trim() ||
+      !form.semester.trim() ||
+      !form.enrollmentYear.trim()
     ) {
       setError("All fields are required.");
       return false;
     }
-    if (isNaN(Number(age)) || Number(age) <= 0) {
+    if (isNaN(Number(form.age)) || Number(form.age) <= 0) {
       setError("Age must be a valid positive number.");
       return false;
     }
-    if (isNaN(Number(semester)) || Number(semester) < 1 || Number(semester) > 10) {
+    if (isNaN(Number(form.semester)) || Number(form.semester) < 1 || Number(form.semester) > 10) {
       setError("Semester must be between 1 and 10.");
       return false;
     }
@@ -64,31 +68,19 @@ export function useStudentForm() {
 
   function getPayload(): StudentFormPayload {
     return {
-      name: name.trim(),
-      age: Number(age),
-      course: course.trim(),
-      email: email.trim(),
-      semester: Number(semester),
-      enrollmentYear: Number(enrollmentYear),
-      feesPaid,
+      name: form.name.trim(),
+      age: Number(form.age),
+      course: form.course.trim(),
+      email: form.email.trim(),
+      semester: Number(form.semester),
+      enrollmentYear: Number(form.enrollmentYear),
+      feesPaid: form.feesPaid,
     };
   }
 
   return {
-    name,
-    setName,
-    age,
-    setAge,
-    course,
-    setCourse,
-    email,
-    setEmail,
-    semester,
-    setSemester,
-    enrollmentYear,
-    setEnrollmentYear,
-    feesPaid,
-    setFeesPaid,
+    form,
+    setForm,
     error,
     setError,
     submitting,

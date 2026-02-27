@@ -7,18 +7,41 @@ import { useStudentForm, inputBase, labelBase, groupBase } from "@/hooks/useStud
 
 export default function AddStudentPage() {
   const router = useRouter();
-  const form = useStudentForm();
+  const {
+    form,
+    setForm,
+    validate,
+    getPayload,
+    error,
+    setError,
+    submitting,
+    setSubmitting,
+  } = useStudentForm();
+
+  const updateField = (key: keyof typeof form, value: string | boolean) =>
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value, type, checked } = e.target;
+    updateField(
+      name as keyof typeof form,
+      type === "checkbox" ? checked : value
+    );
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!form.validate()) return;
+    if (!validate()) return;
 
-    form.setSubmitting(true);
+    setSubmitting(true);
     try {
       const res = await fetch("/api/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form.getPayload()),
+        body: JSON.stringify(getPayload()),
       });
 
       if (!res.ok) {
@@ -28,9 +51,9 @@ export default function AddStudentPage() {
 
       router.push("/students");
     } catch (err: unknown) {
-      form.setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
-      form.setSubmitting(false);
+      setSubmitting(false);
     }
   }
 
@@ -52,8 +75,9 @@ export default function AddStudentPage() {
             <input
               className={inputBase}
               id="name"
+              name="name"
               value={form.name}
-              onChange={(e) => form.setName(e.target.value)}
+              onChange={handleChange}
               required
               placeholder="e.g. Aarav Sharma"
             />
@@ -66,8 +90,9 @@ export default function AddStudentPage() {
             <input
               className={inputBase}
               id="age"
+              name="age"
               value={form.age}
-              onChange={(e) => form.setAge(e.target.value)}
+              onChange={handleChange}
               required
               inputMode="numeric"
               placeholder="e.g. 20"
@@ -81,8 +106,9 @@ export default function AddStudentPage() {
             <input
               className={inputBase}
               id="course"
+              name="course"
               value={form.course}
-              onChange={(e) => form.setCourse(e.target.value)}
+              onChange={handleChange}
               required
               placeholder="e.g. B.Tech CSE"
             />
@@ -95,9 +121,10 @@ export default function AddStudentPage() {
             <input
               className={inputBase}
               id="email"
+              name="email"
               type="email"
               value={form.email}
-              onChange={(e) => form.setEmail(e.target.value)}
+              onChange={handleChange}
               required
               placeholder="e.g. aarav@vit.ac.in"
             />
@@ -111,8 +138,9 @@ export default function AddStudentPage() {
               <input
                 className={inputBase}
                 id="semester"
+                name="semester"
                 value={form.semester}
-                onChange={(e) => form.setSemester(e.target.value)}
+                onChange={handleChange}
                 required
                 inputMode="numeric"
                 min={1}
@@ -127,8 +155,9 @@ export default function AddStudentPage() {
               <input
                 className={inputBase}
                 id="enrollmentYear"
+                name="enrollmentYear"
                 value={form.enrollmentYear}
-                onChange={(e) => form.setEnrollmentYear(e.target.value)}
+                onChange={handleChange}
                 required
                 inputMode="numeric"
                 min={2018}
@@ -142,8 +171,9 @@ export default function AddStudentPage() {
             <input
               type="checkbox"
               id="feesPaid"
+              name="feesPaid"
               checked={form.feesPaid}
-              onChange={(e) => form.setFeesPaid(e.target.checked)}
+              onChange={handleChange}
               className="h-4 w-4 cursor-pointer accent-indigo-600"
             />
             <label
@@ -154,19 +184,19 @@ export default function AddStudentPage() {
             </label>
           </div>
 
-          {form.error && (
+          {error && (
             <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-              {form.error}
+              {error}
             </p>
           )}
 
           <div className="mt-2 flex gap-3">
             <button
               type="submit"
-              disabled={form.submitting}
+              disabled={submitting}
               className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-none bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 active:scale-95 disabled:opacity-70"
             >
-              {form.submitting ? "Adding..." : "Add Student"}
+              {submitting ? "Adding..." : "Add Student"}
             </button>
             <button
               type="button"

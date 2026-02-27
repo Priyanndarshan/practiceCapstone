@@ -13,7 +13,7 @@ export default function Header() {
           href="/"
           className="flex items-center gap-2 text-xl font-bold tracking-tight text-white"
         >
-          <span className="text-2xl" aria-hidden>🎓</span>
+          <span className="text-2xl" aria-hidden></span>
           StudentHub
         </Link>
 
