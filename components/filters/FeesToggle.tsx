@@ -1,4 +1,3 @@
-// UI: FeesToggle - select to filter by fees status.
 "use client";
 
 import React from "react";
@@ -17,14 +16,14 @@ export default function FeesToggle({
   value,
   onChange,
   className = "",
-  ariaLabel = "Filter by fees status",
+  
 }: Props) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={`${selectBase} ${className}`}
-      aria-label={ariaLabel}
+     
     >
       <option value="all">All Fees</option>
       <option value="paid">Paid</option>

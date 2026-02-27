@@ -1,4 +1,3 @@
-// UI: StudentCard - presentational component for student info and actions.
 import Link from "next/link";
 
 type Props = {

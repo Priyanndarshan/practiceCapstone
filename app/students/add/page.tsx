@@ -1,4 +1,3 @@
-// Page: /students/add - form to create a new student via POST /api/students.
 "use client";
 
 import { type FormEvent } from "react";

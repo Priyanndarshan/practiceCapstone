@@ -1,4 +1,3 @@
-// UI: CourseSelect - dropdown to filter by course.
 "use client";
 
 import React from "react";

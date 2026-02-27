@@ -1,4 +1,3 @@
-// UI: SearchInput - controlled search input (search-as-you-type; no submit button).
 "use client";
 
 import React from "react";

@@ -1,4 +1,3 @@
-// Page: /students/[id] - student details with delete/navigation.
 "use client";
 
 import { useEffect, useState } from "react";

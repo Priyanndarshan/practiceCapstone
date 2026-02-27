@@ -1,4 +1,3 @@
-// Page: /students/[id]/edit - form to update a student via PATCH /api/students/[id].
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
